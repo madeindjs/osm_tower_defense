@@ -1,4 +1,4 @@
-# OSM Traffic Light
+# OSM Tower Defense
 
 > In development
 
