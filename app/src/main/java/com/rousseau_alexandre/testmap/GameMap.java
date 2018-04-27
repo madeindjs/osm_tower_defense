@@ -41,12 +41,6 @@ public class GameMap {
         mapController.setCenter(point);
     }
 
-    public void setZoom(double zoomLevel) {
-        IMapController mapController = mapView.getController();
-        mapController.setZoom(zoomLevel);
-    }
-
-
     public void addPoint(Context context, String title, String description, double latitude, double longitude) {
         ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
         items.add(new OverlayItem(title, description, new GeoPoint(latitude, longitude))); // Lat/Lon decimal degrees

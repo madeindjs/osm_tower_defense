@@ -59,8 +59,14 @@ public class MainActivity extends Activity {
         gameMap = new GameMap(mapView);
         gameMap.setMyLocation(ctx);
         if (location != null) {
-            GeoPoint locationGeopoint = new GeoPoint(location.getLatitude(), location.getLongitude())
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            gameMap.addPoint(ctx, "Hello", "I'm a point", latitude + 0.001, longitude + 0.002);
+
+            GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
             gameMap.setZoom(17.0, locationGeopoint);
+
+
         }
     }
 
