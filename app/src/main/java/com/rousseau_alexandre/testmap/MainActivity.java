@@ -20,19 +20,26 @@ import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
+import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
 
-    private MapView map = null;
     private final LocationListener locationListener = new MyLocationListener();
 
     private static final long LOCATION_REFRESH_TIME = 1000;
     private static final float LOCATION_REFRESH_DISTANCE = 10;
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 2812;
+
+    private GameMap gameMap;
+
 
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -51,18 +58,14 @@ public class MainActivity extends Activity {
         //see also StorageUtils
         //note, the load method also sets the HTTP User Agent to your application's package name, abusing osm's tile servers will get you banned based on this string
 
+        requestPermission();
+
         //inflate and create the map
         setContentView(R.layout.activity_main);
+        MapView mapView = (MapView) findViewById(R.id.map);
 
-        map = (MapView) findViewById(R.id.map);
-        map.setTileSource(TileSourceFactory.MAPNIK);
-
-        // Built in Zoom control is required for emulator
-        // map.setBuiltInZoomControls(false);
-        map.setMultiTouchControls(true);
-
-        requestPermission();
-        setMyCurrentLocation();
+        gameMap = new GameMap(mapView);
+        gameMap.setMyLocation(ctx);
     }
 
 
@@ -122,19 +125,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void setMyCurrentLocation() {
-        MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(getApplicationContext()),map);
-        mLocationOverlay.enableMyLocation();
-        map.getOverlays().add(mLocationOverlay);
-
-        // Location loc = getLocation();
-
-        IMapController mapController = map.getController();
-        mapController.setZoom(17.0);
-        GeoPoint startPoint = new GeoPoint(48.8583, 2.2944);
-        //mapController.setCenter(startPoint);
-    }
-
     private Location getLocation() {
         requestPermission();
 
@@ -181,7 +171,7 @@ public class MainActivity extends Activity {
         //if you make changes to the configuration, use
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
-        map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+        gameMap.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
 
     public void onPause(){
@@ -190,6 +180,6 @@ public class MainActivity extends Activity {
         //if you make changes to the configuration, use
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().save(this, prefs);
-        map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+        gameMap.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 }
