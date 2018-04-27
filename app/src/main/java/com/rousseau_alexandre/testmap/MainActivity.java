@@ -12,21 +12,11 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
-import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.ItemizedIconOverlay;
-import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
-import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-
-import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -41,8 +31,8 @@ public class MainActivity extends Activity {
     private GameMap gameMap;
 
 
-
-    @Override public void onCreate(Bundle savedInstanceState) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //handle permissions first, before map is created. not depicted here
@@ -64,13 +54,19 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         MapView mapView = (MapView) findViewById(R.id.map);
 
+        Location location = getLocation();
+
         gameMap = new GameMap(mapView);
         gameMap.setMyLocation(ctx);
+        if (location != null) {
+            GeoPoint locationGeopoint = new GeoPoint(location.getLatitude(), location.getLongitude())
+            gameMap.setZoom(17.0, locationGeopoint);
+        }
     }
 
 
     /**
-     * @see https://developer.android.com/training/permissions/requesting
+     * https://developer.android.com/training/permissions/requesting
      */
     private void requestPermission() {
         if (ContextCompat.checkSelfPermission(this,
@@ -100,7 +96,8 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * @see https://developer.android.com/training/permissions/requesting
+     * https://developer.android.com/training/permissions/requesting
+     *
      * @param requestCode
      * @param permissions
      * @param grantResults
@@ -126,28 +123,26 @@ public class MainActivity extends Activity {
     }
 
     private Location getLocation() {
-        requestPermission();
-
         Context context = getApplicationContext();
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         boolean locationServiceAvailable = false;
 
         // check location available for API >= 23
-        if(Build.VERSION.SDK_INT >= 23){
-            locationServiceAvailable = ContextCompat.checkSelfPermission( context, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission( context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= 23) {
+            locationServiceAvailable = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
         }
 
         boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         String provider;
-        if(isGPSEnabled) {
+        if (isGPSEnabled) {
             provider = LocationManager.GPS_PROVIDER;
-        }else if(isNetworkEnabled) {
+        } else if (isNetworkEnabled) {
             provider = LocationManager.NETWORK_PROVIDER;
-        }else{
+        } else {
             return null;
         }
 
@@ -158,14 +153,14 @@ public class MainActivity extends Activity {
                 this.locationListener
         );
 
-        if (locationManager != null)  {
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (locationManager != null) {
+            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         }
 
         return null;
     }
 
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         //this will refresh the osmdroid configuration on resuming.
         //if you make changes to the configuration, use
@@ -174,7 +169,7 @@ public class MainActivity extends Activity {
         gameMap.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
 
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         //this will refresh the osmdroid configuration on resuming.
         //if you make changes to the configuration, use

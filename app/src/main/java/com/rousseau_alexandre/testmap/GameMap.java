@@ -1,7 +1,6 @@
 package com.rousseau_alexandre.testmap;
 
 import android.content.Context;
-import android.location.Location;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
