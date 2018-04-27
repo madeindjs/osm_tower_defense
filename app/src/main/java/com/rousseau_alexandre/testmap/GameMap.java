@@ -1,6 +1,7 @@
 package com.rousseau_alexandre.testmap;
 
 import android.content.Context;
+import android.location.Location;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
@@ -14,21 +15,25 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class GameMap {
 
     private final MapView mapView;
+    private final Context context;
 
 
-    public GameMap(MapView mapView) {
+    public GameMap(Context context, MapView mapView) {
+        this.context = context;
         this.mapView = mapView;
+
         this.mapView.setTileSource(TileSourceFactory.MAPNIK);
         this.mapView.setMultiTouchControls(true);
         // Built in Zoom control is required for emulator
         // map.setBuiltInZoomControls(false);
     }
 
-    public void setMyLocation(Context context) {
+    public void setMyLocation() {
         GpsMyLocationProvider myLocationProvider = new GpsMyLocationProvider(context);
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(myLocationProvider, this.mapView);
         mLocationOverlay.enableMyLocation();
@@ -41,10 +46,14 @@ public class GameMap {
         mapController.setCenter(point);
     }
 
-    public void addPoint(Context context, String title, String description, double latitude, double longitude) {
+    public void addPoint(String title, String description, double latitude, double longitude) {
         ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
         items.add(new OverlayItem(title, description, new GeoPoint(latitude, longitude))); // Lat/Lon decimal degrees
 
+        this.addPoints(items);
+    }
+
+    public void addPoints(ArrayList<OverlayItem> items) {
         //the overlay
         ItemizedOverlayWithFocus<OverlayItem> mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(
                 context,
@@ -64,7 +73,27 @@ public class GameMap {
         mOverlay.setFocusItemsOnTap(true);
 
         this.mapView.getOverlays().add(mOverlay);
+
     }
+
+    public void addPointsAround(Location location, int quantity) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+
+        ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
+
+        Random rand = new Random();
+
+        for (int i = 0;i < quantity; i++) {
+            double newLatitude = latitude + (0.001 * i);
+            double newLongitude = longitude + (0.001 * i);
+            items.add(new OverlayItem("Hello", "I'm a point", new GeoPoint(newLatitude, newLongitude))); // Lat/Lon decimal degrees
+        }
+
+        this.addPoints(items);
+    }
+
+
 
     public void onResume() {
         this.mapView.onResume();
