@@ -22,8 +22,11 @@ public class GameMap {
     private final MapView mapView;
     private final Context context;
 
+    private final Random random;
+
 
     public GameMap(Context context, MapView mapView) {
+        this.random = new Random();
         this.context = context;
         this.mapView = mapView;
 
@@ -77,20 +80,31 @@ public class GameMap {
     }
 
     public void addPointsAround(Location location, int quantity) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
+        final double range = 0.001;
+        //
+        final double latitude = location.getLatitude();
+        final double longitude = location.getLongitude();
+        //
+        final double latitudeMin = latitude - range;
+        final double latitudeMax = latitude + range;
+        //
+        final double longitudeMin = longitude - range;
+        final double longitudeMax = longitude + range;
 
         ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
 
-        Random rand = new Random();
-
         for (int i = 0;i < quantity; i++) {
-            double newLatitude = latitude + (0.001 * i);
-            double newLongitude = longitude + (0.001 * i);
+            double newLatitude = this.getDoubleBetween(latitudeMin, latitudeMax);
+            double newLongitude = this.getDoubleBetween(longitudeMin, longitudeMax);;
             items.add(new OverlayItem("Hello", "I'm a point", new GeoPoint(newLatitude, newLongitude))); // Lat/Lon decimal degrees
         }
 
         this.addPoints(items);
+    }
+
+
+    public double getDoubleBetween(double rangeMin, double rangeMax) {
+        return rangeMin + (rangeMax - rangeMin) * this.random.nextDouble();
     }
 
 
