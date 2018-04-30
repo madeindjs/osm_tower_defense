@@ -3,6 +3,7 @@ package com.rousseau_alexandre.testmap;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
@@ -14,16 +15,35 @@ import org.osmdroid.views.overlay.Marker;
 
 public class Enemy extends Marker {
 
+    public int life = 5;
+
     public Enemy(MapView mapView) {
         super(mapView);
-        this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        //this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+
+    }
+
+    public void updateTitle() {
+        this.setTitle(Integer.toString(this.life));
+    }
+
+    @Override
+    protected boolean onMarkerClickDefault(Marker marker, MapView mapView) {
+        this.life = this.life - 1;
+        this.updateTitle();
+
+        if (this.life > 0) {
+            return super.onMarkerClickDefault(marker, mapView);
+        } else {
+            return this.destroy(mapView);
+        }
     }
 
     /**
      * Move a point
      * https://stackoverflow.com/questions/31337149/animating-markers-on-openstreet-maps-using-osmdroid
      *
-     * @param marker
+     * @param mapView
      * @param toPosition
      */
     public void moveTo(final MapView mapView, final GeoPoint toPosition) {
@@ -48,6 +68,11 @@ public class Enemy extends Marker {
                 mapView.postInvalidate();
             }
         });
+    }
+
+    public boolean destroy(MapView mapView) {
+        mapView.getOverlayManager().remove(this);
+        return true;
     }
 
 }

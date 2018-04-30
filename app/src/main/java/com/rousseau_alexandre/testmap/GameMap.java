@@ -97,7 +97,7 @@ public class GameMap {
     }
 
     public ArrayList<Enemy> createEnemiesAround(Location location, int quantity) {
-        final double range = 0.005;
+        final double range = 0.01;
         //
         final double latitude = location.getLatitude();
         final double longitude = location.getLongitude();
