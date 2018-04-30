@@ -31,7 +31,7 @@ public class GameMap {
     private final MapView mapView;
     private final Context context;
     private final Random random;
-    private final LinkedList<Enemy> enemies = new LinkedList<Enemy>();
+    private final ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 
 
     public GameMap(Context context, MapView mapView) {
@@ -54,6 +54,10 @@ public class GameMap {
 
     public MapView getMapView() {
         return mapView;
+    }
+
+    public ArrayList<Enemy> getEnemies() {
+        return this.enemies;
     }
 
     public void setZoom(double zoomLevel, IGeoPoint point) {
@@ -92,8 +96,8 @@ public class GameMap {
 
     }
 
-    public void addPointsAround(Location location, int quantity) {
-        final double range = 0.001;
+    public ArrayList<Enemy> createEnemiesAround(Location location, int quantity) {
+        final double range = 0.005;
         //
         final double latitude = location.getLatitude();
         final double longitude = location.getLongitude();
@@ -104,16 +108,22 @@ public class GameMap {
         final double longitudeMin = longitude - range;
         final double longitudeMax = longitude + range;
 
-        ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
+        ArrayList<Enemy> newEnemies = new ArrayList<Enemy>();
 
         for (int i = 0; i < quantity; i++) {
+            Enemy enemy = new Enemy(this.mapView);
+
             double newLatitude = this.getDoubleBetween(latitudeMin, latitudeMax);
             double newLongitude = this.getDoubleBetween(longitudeMin, longitudeMax);
-            ;
-            items.add(new OverlayItem("Hello", "I'm a point", new GeoPoint(newLatitude, newLongitude))); // Lat/Lon decimal degrees
+            enemy.setPosition(new GeoPoint(newLatitude, newLongitude));
+
+            newEnemies.add(enemy);
+            enemies.add(enemy);
         }
 
-        this.addPoints(items);
+        this.mapView.getOverlays().addAll(enemies);
+
+        return newEnemies;
     }
 
     public double getDoubleBetween(double rangeMin, double rangeMax) {

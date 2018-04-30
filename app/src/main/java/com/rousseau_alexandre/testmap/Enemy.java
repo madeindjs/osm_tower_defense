@@ -16,6 +16,7 @@ public class Enemy extends Marker {
 
     public Enemy(MapView mapView) {
         super(mapView);
+        this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
     }
 
     /**

@@ -68,14 +68,11 @@ public class MainActivity extends Activity {
             // gameMap.setZoom(17.0, locationGeopoint);
 
 
-            // gameMap.addPointsAround(location, 5);
+            gameMap.createEnemiesAround(location, 5);
 
-            GeoPoint toGeopoint = new GeoPoint(latitude + 0.01, longitude + 0.01);
-
-            Enemy enemy = gameMap.createEnemy(toGeopoint);
-
-            enemy.moveTo(gameMap.getMapView(), locationGeopoint);
-
+            for (Enemy enemy : gameMap.getEnemies()) {
+                enemy.moveTo(gameMap.getMapView(), locationGeopoint);
+            }
         }
     }
 
