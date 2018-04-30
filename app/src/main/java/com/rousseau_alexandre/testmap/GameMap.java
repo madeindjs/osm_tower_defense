@@ -22,14 +22,16 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import org.osmdroid.views.Projection;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class GameMap {
 
     private final MapView mapView;
     private final Context context;
-
     private final Random random;
+    private final LinkedList<Enemy> enemies = new LinkedList<Enemy>();
 
 
     public GameMap(Context context, MapView mapView) {
@@ -48,6 +50,10 @@ public class GameMap {
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(myLocationProvider, this.mapView);
         mLocationOverlay.enableMyLocation();
         this.mapView.getOverlays().add(mLocationOverlay);
+    }
+
+    public MapView getMapView() {
+        return mapView;
     }
 
     public void setZoom(double zoomLevel, IGeoPoint point) {
@@ -159,13 +165,14 @@ public class GameMap {
      * @param location
      * @return
      */
-    public Marker createMarker(GeoPoint location) {
-        Marker marker = new Marker(this.mapView);
-        marker.setPosition(location);
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        this.mapView.getOverlays().add(marker);
+    public Enemy createEnemy(GeoPoint location) {
+        Enemy enemy = new Enemy(this.mapView);
+        enemy.setPosition(location);
+        enemy.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        this.mapView.getOverlays().add(enemy);
+        this.enemies.add(enemy);
 
-        return marker;
+        return enemy;
     }
 
 

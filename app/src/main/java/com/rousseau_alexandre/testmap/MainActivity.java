@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
             double longitude = location.getLongitude();
 
             GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
-            gameMap.setZoom(10.0, locationGeopoint);
+            gameMap.setZoom(15.0, locationGeopoint);
             // gameMap.setZoom(17.0, locationGeopoint);
 
 
@@ -72,8 +72,9 @@ public class MainActivity extends Activity {
 
             GeoPoint toGeopoint = new GeoPoint(latitude + 0.01, longitude + 0.01);
 
-            Marker marker = gameMap.createMarker(locationGeopoint);
-            gameMap.animateMarker(marker, toGeopoint);
+            Enemy enemy = gameMap.createEnemy(toGeopoint);
+
+            enemy.moveTo(gameMap.getMapView(), locationGeopoint);
 
         }
     }
