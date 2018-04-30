@@ -17,6 +17,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 public class MainActivity extends Activity {
 
@@ -63,8 +64,17 @@ public class MainActivity extends Activity {
             double longitude = location.getLongitude();
 
             GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
-            gameMap.setZoom(17.0, locationGeopoint);
-            gameMap.addPointsAround(location, 5);
+            gameMap.setZoom(10.0, locationGeopoint);
+            // gameMap.setZoom(17.0, locationGeopoint);
+
+
+            // gameMap.addPointsAround(location, 5);
+
+            GeoPoint toGeopoint = new GeoPoint(latitude + 0.01, longitude + 0.01);
+
+            Marker marker = gameMap.createMarker(locationGeopoint);
+            gameMap.animateMarker(marker, toGeopoint);
+
         }
     }
 
