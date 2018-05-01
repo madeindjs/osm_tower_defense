@@ -1,7 +1,12 @@
 package com.rousseau_alexandre.testmap;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.location.Location;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
@@ -10,20 +15,27 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
+import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+import org.osmdroid.views.Projection;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class GameMap {
 
     private final MapView mapView;
     private final Context context;
+    private final Random random;
+    private final ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 
 
     public GameMap(Context context, MapView mapView) {
+        this.random = new Random();
         this.context = context;
         this.mapView = mapView;
 
@@ -38,6 +50,14 @@ public class GameMap {
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(myLocationProvider, this.mapView);
         mLocationOverlay.enableMyLocation();
         this.mapView.getOverlays().add(mLocationOverlay);
+    }
+
+    public MapView getMapView() {
+        return mapView;
+    }
+
+    public ArrayList<Enemy> getEnemies() {
+        return this.enemies;
     }
 
     public void setZoom(double zoomLevel, IGeoPoint point) {
@@ -76,24 +96,39 @@ public class GameMap {
 
     }
 
-    public void addPointsAround(Location location, int quantity) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
+    public ArrayList<Enemy> createEnemiesAround(Location location, int quantity) {
+        final double range = 0.01;
+        //
+        final double latitude = location.getLatitude();
+        final double longitude = location.getLongitude();
+        //
+        final double latitudeMin = latitude - range;
+        final double latitudeMax = latitude + range;
+        //
+        final double longitudeMin = longitude - range;
+        final double longitudeMax = longitude + range;
 
-        ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
+        ArrayList<Enemy> newEnemies = new ArrayList<Enemy>();
 
-        Random rand = new Random();
+        for (int i = 0; i < quantity; i++) {
+            Enemy enemy = new Enemy(this.mapView);
 
-        for (int i = 0;i < quantity; i++) {
-            double newLatitude = latitude + (0.001 * i);
-            double newLongitude = longitude + (0.001 * i);
-            items.add(new OverlayItem("Hello", "I'm a point", new GeoPoint(newLatitude, newLongitude))); // Lat/Lon decimal degrees
+            double newLatitude = this.getDoubleBetween(latitudeMin, latitudeMax);
+            double newLongitude = this.getDoubleBetween(longitudeMin, longitudeMax);
+            enemy.setPosition(new GeoPoint(newLatitude, newLongitude));
+
+            newEnemies.add(enemy);
+            enemies.add(enemy);
         }
 
-        this.addPoints(items);
+        this.mapView.getOverlays().addAll(enemies);
+
+        return newEnemies;
     }
 
-
+    public double getDoubleBetween(double rangeMin, double rangeMax) {
+        return rangeMin + (rangeMax - rangeMin) * this.random.nextDouble();
+    }
 
     public void onResume() {
         this.mapView.onResume();
@@ -101,6 +136,53 @@ public class GameMap {
 
     public void onPause() {
         this.mapView.onPause();
+    }
+
+    /**
+     * Move a point
+     * https://stackoverflow.com/questions/31337149/animating-markers-on-openstreet-maps-using-osmdroid
+     *
+     * @param marker
+     * @param toPosition
+     */
+    public void animateMarker(final Marker marker, final GeoPoint toPosition) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = this.mapView.getProjection();
+        Point startPoint = proj.toPixels(marker.getPosition(), null);
+        final IGeoPoint startGeoPoint = proj.fromPixels(startPoint.x, startPoint.y);
+        final long duration = 10000;
+        final Interpolator interpolator = new LinearInterpolator();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed / duration);
+                double lng = t * toPosition.getLongitude() + (1 - t) * startGeoPoint.getLongitude();
+                double lat = t * toPosition.getLatitude() + (1 - t) * startGeoPoint.getLatitude();
+                marker.setPosition(new GeoPoint(lat, lng));
+                if (t < 1.0) {
+                    handler.postDelayed(this, 15);
+                }
+                GameMap.this.mapView.postInvalidate();
+            }
+        });
+    }
+
+    /**
+     * Add marker on the map & return it
+     *
+     * @param location
+     * @return
+     */
+    public Enemy createEnemy(GeoPoint location) {
+        Enemy enemy = new Enemy(this.mapView);
+        enemy.setPosition(location);
+        enemy.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        this.mapView.getOverlays().add(enemy);
+        this.enemies.add(enemy);
+
+        return enemy;
     }
 
 

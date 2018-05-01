@@ -17,13 +17,14 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 public class MainActivity extends Activity {
 
 
     private final LocationListener locationListener = new MyLocationListener();
 
-    private static final long LOCATION_REFRESH_TIME = 1000;
+    private static final long LOCATION_REFRESH_TIME = 5000;
     private static final float LOCATION_REFRESH_DISTANCE = 10;
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 2812;
@@ -63,8 +64,15 @@ public class MainActivity extends Activity {
             double longitude = location.getLongitude();
 
             GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
-            gameMap.setZoom(17.0, locationGeopoint);
-            gameMap.addPointsAround(location, 20);
+            gameMap.setZoom(15.0, locationGeopoint);
+            // gameMap.setZoom(17.0, locationGeopoint);
+
+
+            gameMap.createEnemiesAround(location, 5);
+
+            for (Enemy enemy : gameMap.getEnemies()) {
+                enemy.moveTo(gameMap.getMapView(), locationGeopoint);
+            }
         }
     }
 
