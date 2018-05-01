@@ -10,8 +10,11 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.view.View;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
@@ -66,14 +69,33 @@ public class MainActivity extends Activity {
             GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
             gameMap.setZoom(15.0, locationGeopoint);
             // gameMap.setZoom(17.0, locationGeopoint);
-
-
-            gameMap.createEnemiesAround(location, 5);
-
-            for (Enemy enemy : gameMap.getEnemies()) {
-                enemy.moveTo(gameMap.getMapView(), locationGeopoint);
-            }
         }
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Location location = getLocation();
+
+                if (location != null) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+
+                    GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
+                    gameMap.setZoom(15.0, locationGeopoint);
+                    // gameMap.setZoom(17.0, locationGeopoint);
+                    gameMap.createEnemiesAround(location, 5);
+
+                    for (Enemy enemy : gameMap.getEnemies()) {
+                        enemy.moveTo(gameMap.getMapView(), locationGeopoint);
+                    }
+                }else{
+                    Snackbar.make(view, "Can't find your location", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+                }
+            }
+        });
     }
 
 
