@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         //handle permissions first, before map is created. not depicted here
+        requestPermission();
 
         //load/initialize the osmdroid configuration, this can be done
         Context ctx = getApplicationContext();
@@ -52,11 +53,11 @@ public class MainActivity extends Activity {
         //see also StorageUtils
         //note, the load method also sets the HTTP User Agent to your application's package name, abusing osm's tile servers will get you banned based on this string
 
-        requestPermission();
 
         //inflate and create the map
         setContentView(R.layout.activity_main);
         MapView mapView = (MapView) findViewById(R.id.map);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
         Location location = getLocation();
 
@@ -69,9 +70,12 @@ public class MainActivity extends Activity {
             GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
             gameMap.setZoom(15.0, locationGeopoint);
             // gameMap.setZoom(17.0, locationGeopoint);
+        }else{
+            fab.setEnabled(false);
+            Snackbar.make(getCurrentFocus(), "Can't find your location", Snackbar.LENGTH_LONG)
+                    .show();
         }
 
-        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,8 +86,6 @@ public class MainActivity extends Activity {
                     double longitude = location.getLongitude();
 
                     GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
-                    gameMap.setZoom(15.0, locationGeopoint);
-                    // gameMap.setZoom(17.0, locationGeopoint);
                     gameMap.createEnemiesAround(location, 5);
 
                     for (Enemy enemy : gameMap.getEnemies()) {
@@ -91,8 +93,7 @@ public class MainActivity extends Activity {
                     }
                 }else{
                     Snackbar.make(view, "Can't find your location", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-
+                            .show();
                 }
             }
         });

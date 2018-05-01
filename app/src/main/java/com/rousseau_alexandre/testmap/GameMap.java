@@ -8,8 +8,11 @@ import android.os.SystemClock;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import com.google.android.gms.maps.model.TileProvider;
+
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
+import org.osmdroid.tileprovider.MapTileProviderBase;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -17,6 +20,7 @@ import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.TilesOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import org.osmdroid.views.Projection;
@@ -43,6 +47,8 @@ public class GameMap {
         this.mapView.setMultiTouchControls(true);
         // Built in Zoom control is required for emulator
         // map.setBuiltInZoomControls(false);
+
+        this.mapView.setOverlayManager(MyOverlayManager.create(mapView, context));
     }
 
     public void setMyLocation() {
