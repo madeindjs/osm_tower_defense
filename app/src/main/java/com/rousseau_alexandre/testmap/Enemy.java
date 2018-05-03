@@ -1,5 +1,6 @@
 package com.rousseau_alexandre.testmap;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -8,10 +9,16 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
 import org.osmdroid.api.IGeoPoint;
+import org.osmdroid.bonuspack.routing.OSRMRoadManager;
+import org.osmdroid.bonuspack.routing.Road;
+import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Polyline;
+
+import java.util.ArrayList;
 
 public class Enemy extends Marker {
 
@@ -19,8 +26,13 @@ public class Enemy extends Marker {
 
     public int life = 5;
 
-    public Enemy(MapView mapView) {
+    private final MapView mapView;
+    private final Context context;
+
+    public Enemy(MapView mapView, Context context) {
         super(mapView);
+        this.mapView = mapView;
+        this.context = context;
         //this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
     }
@@ -37,7 +49,7 @@ public class Enemy extends Marker {
         if (this.life > 0) {
             return super.onMarkerClickDefault(marker, mapView);
         } else {
-            return this.destroy(mapView);
+            return this.destroy();
         }
     }
 
@@ -45,10 +57,13 @@ public class Enemy extends Marker {
      * Move a point
      * https://stackoverflow.com/questions/31337149/animating-markers-on-openstreet-maps-using-osmdroid
      *
-     * @param mapView
-     * @param toPosition
+     * @param to
      */
-    public void moveTo(final MapView mapView, final GeoPoint toPosition) {
+    public void moveTo(final GeoPoint to) {
+
+        this.drawRoad(to);
+
+
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         Projection proj = mapView.getProjection();
@@ -58,8 +73,8 @@ public class Enemy extends Marker {
         final Interpolator interpolator = new LinearInterpolator();
 
 
-        final double toLongitude = toPosition.getLongitude();
-        final double toLatitude = toPosition.getLatitude();
+        final double toLongitude = to.getLongitude();
+        final double toLatitude = to.getLatitude();
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -73,7 +88,7 @@ public class Enemy extends Marker {
                 }else{
                     // destroy when arrived
                     // TODO remove one life to gamer
-                    Enemy.this.destroy(mapView);
+                    Enemy.this.destroy();
                 }
                 mapView.postInvalidate();
 
@@ -81,7 +96,19 @@ public class Enemy extends Marker {
         });
     }
 
-    public boolean destroy(MapView mapView) {
+
+    public void drawRoad(final GeoPoint to) {
+        ArrayList<GeoPoint> wayPoints = new ArrayList<GeoPoint>();
+        wayPoints.add(this.getPosition());
+        wayPoints.add(to);
+        RoadManager roadManager = new OSRMRoadManager(context);
+        Road road = roadManager.getRoad(wayPoints);
+        Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
+        mapView.getOverlays().add(roadOverlay);
+        mapView.invalidate();
+    }
+
+    public boolean destroy() {
         mapView.getOverlayManager().remove(this);
         return true;
     }

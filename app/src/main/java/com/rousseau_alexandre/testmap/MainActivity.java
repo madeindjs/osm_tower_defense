@@ -9,6 +9,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -39,6 +40,11 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // for local environement
+        // TODO: remove this (see: https://github.com/MKergall/osmbonuspack/wiki/Tutorial_0#important-note-about-network-calls)
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         //handle permissions first, before map is created. not depicted here
         requestPermission();
@@ -90,7 +96,7 @@ public class MainActivity extends Activity {
                     gameMap.createEnemiesAround(location, 5);
 
                     for (Enemy enemy : gameMap.getEnemies()) {
-                        enemy.moveTo(gameMap.getMapView(), locationGeopoint);
+                        enemy.moveTo(locationGeopoint);
                     }
                 }else{
                     Snackbar.make(view, "Can't find your location", Snackbar.LENGTH_LONG)

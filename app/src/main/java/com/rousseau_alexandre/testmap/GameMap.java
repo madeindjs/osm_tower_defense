@@ -117,7 +117,7 @@ public class GameMap {
         ArrayList<Enemy> newEnemies = new ArrayList<Enemy>();
 
         for (int i = 0; i < quantity; i++) {
-            Enemy enemy = new Enemy(this.mapView);
+            Enemy enemy = new Enemy(this.mapView, this.context);
 
             double newLatitude = this.getDoubleBetween(latitudeMin, latitudeMax);
             double newLongitude = this.getDoubleBetween(longitudeMin, longitudeMax);
@@ -145,44 +145,13 @@ public class GameMap {
     }
 
     /**
-     * Move a point
-     * https://stackoverflow.com/questions/31337149/animating-markers-on-openstreet-maps-using-osmdroid
-     *
-     * @param marker
-     * @param toPosition
-     */
-    public void animateMarker(final Marker marker, final GeoPoint toPosition) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        Projection proj = this.mapView.getProjection();
-        Point startPoint = proj.toPixels(marker.getPosition(), null);
-        final IGeoPoint startGeoPoint = proj.fromPixels(startPoint.x, startPoint.y);
-        final long duration = 10000;
-        final Interpolator interpolator = new LinearInterpolator();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed / duration);
-                double lng = t * toPosition.getLongitude() + (1 - t) * startGeoPoint.getLongitude();
-                double lat = t * toPosition.getLatitude() + (1 - t) * startGeoPoint.getLatitude();
-                marker.setPosition(new GeoPoint(lat, lng));
-                if (t < 1.0) {
-                    handler.postDelayed(this, 15);
-                }
-                GameMap.this.mapView.postInvalidate();
-            }
-        });
-    }
-
-    /**
      * Add marker on the map & return it
      *
      * @param location
      * @return
      */
     public Enemy createEnemy(GeoPoint location) {
-        Enemy enemy = new Enemy(this.mapView);
+        Enemy enemy = new Enemy(this.mapView, this.context);
         enemy.setPosition(location);
         enemy.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         this.mapView.getOverlays().add(enemy);
