@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
 
     private final LocationListener locationListener = new MyLocationListener();
 
-    private static final long LOCATION_REFRESH_TIME = 0;
+    private static final long LOCATION_REFRESH_TIME = 5000;
     private static final float LOCATION_REFRESH_DISTANCE = 10;
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 2812;

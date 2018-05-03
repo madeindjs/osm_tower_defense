@@ -15,6 +15,8 @@ import org.osmdroid.views.overlay.Marker;
 
 public class Enemy extends Marker {
 
+    private static int DELAY_MOVEMENT = 500;
+
     public int life = 5;
 
     public Enemy(MapView mapView) {
@@ -54,18 +56,27 @@ public class Enemy extends Marker {
         final IGeoPoint startGeoPoint = proj.fromPixels(startPoint.x, startPoint.y);
         final long duration = 10000;
         final Interpolator interpolator = new LinearInterpolator();
+
+
+        final double toLongitude = toPosition.getLongitude();
+        final double toLatitude = toPosition.getLatitude();
         handler.post(new Runnable() {
             @Override
             public void run() {
                 long elapsed = SystemClock.uptimeMillis() - start;
                 float t = interpolator.getInterpolation((float) elapsed / duration);
-                double lng = t * toPosition.getLongitude() + (1 - t) * startGeoPoint.getLongitude();
-                double lat = t * toPosition.getLatitude() + (1 - t) * startGeoPoint.getLatitude();
+                double lng = t * toLongitude + (1 - t) * startGeoPoint.getLongitude();
+                double lat = t * toLatitude + (1 - t) * startGeoPoint.getLatitude();
                 Enemy.this.setPosition(new GeoPoint(lat, lng));
                 if (t < 1.0) {
-                    handler.postDelayed(this, 15);
+                    handler.postDelayed(this, DELAY_MOVEMENT);
+                }else{
+                    // destroy when arrived
+                    // TODO remove one life to gamer
+                    Enemy.this.destroy(mapView);
                 }
                 mapView.postInvalidate();
+
             }
         });
     }
