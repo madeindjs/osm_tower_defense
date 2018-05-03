@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 
 import org.osmdroid.config.Configuration;
@@ -27,7 +28,7 @@ public class MainActivity extends Activity {
 
     private final LocationListener locationListener = new MyLocationListener();
 
-    private static final long LOCATION_REFRESH_TIME = 5000;
+    private static final long LOCATION_REFRESH_TIME = 0;
     private static final float LOCATION_REFRESH_DISTANCE = 10;
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 2812;
@@ -56,6 +57,7 @@ public class MainActivity extends Activity {
 
         //inflate and create the map
         setContentView(R.layout.activity_main);
+        View parentLayout = findViewById(android.R.id.content);
         MapView mapView = (MapView) findViewById(R.id.map);
         FloatingActionButton fab = findViewById(R.id.fab);
 
@@ -71,8 +73,7 @@ public class MainActivity extends Activity {
             gameMap.setZoom(15.0, locationGeopoint);
             // gameMap.setZoom(17.0, locationGeopoint);
         }else{
-            fab.setEnabled(false);
-            Snackbar.make(getCurrentFocus(), "Can't find your location", Snackbar.LENGTH_LONG)
+            Snackbar.make(parentLayout, "Can't find your location", Snackbar.LENGTH_LONG)
                     .show();
         }
 
@@ -127,6 +128,7 @@ public class MainActivity extends Activity {
             }
         } else {
             // Permission has already been granted
+            Log.d("position", "Position has already been granted");
         }
     }
 
@@ -158,41 +160,62 @@ public class MainActivity extends Activity {
     }
 
     private Location getLocation() {
+        Location location = null;
         Context context = getApplicationContext();
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        boolean locationServiceAvailable = false;
-
         // check location available for API >= 23
-        if (Build.VERSION.SDK_INT >= 23) {
-            locationServiceAvailable = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
-        }
-
-        boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        String provider;
-        if (isGPSEnabled) {
-            provider = LocationManager.GPS_PROVIDER;
-        } else if (isNetworkEnabled) {
-            provider = LocationManager.NETWORK_PROVIDER;
-        } else {
+        if (
+                Build.VERSION.SDK_INT >= 23 &&
+                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.w("location", "ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION permission not granted");
             return null;
         }
 
-        locationManager.requestLocationUpdates(
-                provider,
-                LOCATION_REFRESH_TIME,
-                LOCATION_REFRESH_DISTANCE,
-                this.locationListener
-        );
+        boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isPassiveEnabled = locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-        if (locationManager != null) {
-            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        if (isGPSEnabled || isNetworkEnabled || isPassiveEnabled) {
+            if (isGPSEnabled && location == null) {
+                if (isGPSEnabled && location == null) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                            LOCATION_REFRESH_DISTANCE, this.locationListener
+                    );
+                    Log.d("GPS", "GPS Enabled");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    }
+                }
+                if (isPassiveEnabled && location == null) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.PASSIVE_PROVIDER,
+                            LOCATION_REFRESH_TIME,
+                            LOCATION_REFRESH_DISTANCE, this.locationListener);
+                    Log.d("Network", "Network Enabled");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+                    }
+                }
+
+                if (isNetworkEnabled && location == null) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER,
+                            LOCATION_REFRESH_TIME,
+                            LOCATION_REFRESH_DISTANCE, this.locationListener);
+                    Log.d("Network", "Network Enabled");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    }
+                }
+            }
         }
 
-        return null;
+        return location;
     }
 
     public void onResume() {
