@@ -27,11 +27,15 @@ public class Enemy extends Marker {
 
     public int life = 5;
 
+    private final Handler handler;
+
     private final MapView mapView;
     private final Context context;
 
     public Enemy(MapView mapView, Context context) {
         super(mapView);
+        this.handler = new Handler(Looper.getMainLooper());
+
         this.mapView = mapView;
         this.context = context;
         //this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -98,9 +102,7 @@ public class Enemy extends Marker {
     }
 
     public void moveToFromRoad(final Polyline roadOverlay) {
-        final Handler handler = new Handler(Looper.getMainLooper());
         final Iterator<GeoPoint> iterator = roadOverlay.getPoints().iterator();
-
         long delay = (long) this.DELAY_MOVEMENT;
 
         while (iterator.hasNext()) {
@@ -114,8 +116,16 @@ public class Enemy extends Marker {
                 }
             }, delay);
             delay = delay + this.DELAY_MOVEMENT;
-            //handler.postDelayed(this, DELAY_MOVEMENT);
         }
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Enemy.this.destroy();
+                mapView.postInvalidate();
+                // TODO: remove one life to gamer
+            }
+        }, delay);
     }
 
 
@@ -135,7 +145,9 @@ public class Enemy extends Marker {
     }
 
     public boolean destroy() {
-        mapView.getOverlayManager().remove(this);
+        this.getInfoWindow().close();
+        this.remove(mapView);
+        this.handler.removeCallbacksAndMessages(null);
         return true;
     }
 
