@@ -23,6 +23,7 @@ import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Polyline;
 
 public class MainActivity extends Activity {
 
@@ -93,10 +94,12 @@ public class MainActivity extends Activity {
                     double longitude = location.getLongitude();
 
                     GeoPoint locationGeopoint = new GeoPoint(latitude, longitude);
-                    gameMap.createEnemiesAround(location, 5);
+                    gameMap.createEnemiesAround(location, 2);
 
                     for (Enemy enemy : gameMap.getEnemies()) {
-                        enemy.moveTo(locationGeopoint);
+                        Polyline road = enemy.getRoadTo(locationGeopoint);
+                        enemy.moveToFromRoad(road);
+                        //enemy.moveTo(locationGeopoint);
                     }
                 }else{
                     Snackbar.make(view, "Can't find your location", Snackbar.LENGTH_LONG)

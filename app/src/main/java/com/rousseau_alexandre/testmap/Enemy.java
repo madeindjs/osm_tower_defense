@@ -3,8 +3,8 @@ package com.rousseau_alexandre.testmap;
 import android.content.Context;
 import android.graphics.Point;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
-import android.view.MotionEvent;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
@@ -19,10 +19,11 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Enemy extends Marker {
 
-    private static int DELAY_MOVEMENT = 500;
+    private static int DELAY_MOVEMENT = 200;
 
     public int life = 5;
 
@@ -64,7 +65,7 @@ public class Enemy extends Marker {
         this.drawRoad(to);
 
 
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         final long start = SystemClock.uptimeMillis();
         Projection proj = mapView.getProjection();
         Point startPoint = proj.toPixels(this.getPosition(), null);
@@ -85,7 +86,7 @@ public class Enemy extends Marker {
                 Enemy.this.setPosition(new GeoPoint(lat, lng));
                 if (t < 1.0) {
                     handler.postDelayed(this, DELAY_MOVEMENT);
-                }else{
+                } else {
                     // destroy when arrived
                     // TODO remove one life to gamer
                     Enemy.this.destroy();
@@ -96,14 +97,39 @@ public class Enemy extends Marker {
         });
     }
 
+    public void moveToFromRoad(final Polyline roadOverlay) {
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Iterator<GeoPoint> iterator = roadOverlay.getPoints().iterator();
 
-    public void drawRoad(final GeoPoint to) {
+        long delay = (long) this.DELAY_MOVEMENT;
+
+        while (iterator.hasNext()) {
+            final GeoPoint point = iterator.next();
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Enemy.this.setPosition(point);
+                    mapView.postInvalidate();
+                }
+            }, delay);
+            delay = delay + this.DELAY_MOVEMENT;
+            //handler.postDelayed(this, DELAY_MOVEMENT);
+        }
+    }
+
+
+    public Polyline getRoadTo(final GeoPoint to) {
         ArrayList<GeoPoint> wayPoints = new ArrayList<GeoPoint>();
         wayPoints.add(this.getPosition());
         wayPoints.add(to);
         RoadManager roadManager = new OSRMRoadManager(context);
         Road road = roadManager.getRoad(wayPoints);
-        Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
+        return RoadManager.buildRoadOverlay(road);
+    }
+
+    public void drawRoad(final GeoPoint to) {
+        Polyline roadOverlay = this.getRoadTo(to);
         mapView.getOverlays().add(roadOverlay);
         mapView.invalidate();
     }
